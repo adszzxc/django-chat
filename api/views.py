@@ -10,7 +10,12 @@ def profile(request, nick):
     try:
         profile = Profile.objects.get(nickname=nick)
         serializer = ProfileSerializer(profile)
-        data = serializer.data
+        if request.user.is_authenticated:
+            data = serializer.data
+        else:
+            data = {
+                "message":"User is not authenticated!"
+                }
     except Exception as E:
         data = {"message":str(E)}
     return JsonResponse(data)
