@@ -6,7 +6,9 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.response import Response
 from django.http import JsonResponse, HttpResponse
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.contrib.auth.models import User
+import uuid
 import json
 
 @api_view(["GET"])
@@ -53,7 +55,36 @@ def create_message(request):
                                content=payload["content"])
         
         return Response({"message":"created Chat, sent message"})
+
+
+#
+class CsrfExemptSessionAuthentication(SessionAuthentication):
+    def enforce_csrf(self, request):
+        return
+#
+
+@api_view(['POST'])
+@authentication_classes((CsrfExemptSessionAuthentication, BasicAuthentication,))
+@permission_classes((AllowAny,))
+def register_user(request):
+    body_unicode = request.body.decode('utf-8')
+    payload = json.loads(body_unicode)
+    username = payload["username"]
+    password = payload["password"]
+    email = payload["email"]
+
+    user_obj = User.objects.create(username=username,
+                                   password=password,
+                                   email=email)
+    while True:
+        usercode = uuid.uuid4().hex[:10]
+        if Profile.objects.filter(usercode=usercode).exists():
+            pass
+        else:
+            break
+    profile_obj = Profile.objects.create(user=user_obj,
+                                        nickname=user_obj.username,
+                                        usercode=usercode)
+    return Response({"message":"User and Profile created succesfully."})
     
     
-            
-        
