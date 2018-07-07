@@ -1,17 +1,23 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+def user_directory_path(instance, filename):
+    return 'images/users/{}/{}'.format(instance.user.username, filename)
+
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    friends = models.ManyToManyField("Profile", blank=True)
     nickname = models.CharField(max_length=200)
     created = models.DateField(auto_now_add=True)
-    avatar = models.ImageField(upload_to="images/users/%s/avatars/" % nickname,
+    avatar = models.ImageField(upload_to=user_directory_path,
                                null=True, blank=True)
     banned = models.BooleanField(default=False)
     active = models.BooleanField(default=False)
+    usercode = models.CharField(max_length=100)
 
     def __str__(self):
-        return ("{}'s profile".format(self.nickname))
+        return (self.nickname)
 
 class Chat(models.Model):
     participants = models.ManyToManyField(Profile)
