@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth import authenticate, login
 from main.models import Profile, Message, Chat
-from .serializers import ProfileSerializer
+from .serializers import ProfileSerializer, MessageSerializer, ChatSerializer
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
 from django.http import JsonResponse, HttpResponse
@@ -86,5 +86,19 @@ def register_user(request):
                                         nickname=user_obj.username,
                                         usercode=usercode)
     return Response({"message":"User and Profile created succesfully."})
+
+@api_view(['GET'])
+@authentication_classes((TokenAuthentication,))
+def get_messages(request, interlocutor, amount):
+    p1 = request.user.profile
+    p2 = get_object_or_404(Profile, usercode=interlocutor)
+    query = Chat.objects.filter(participants__in=[p1]).filter(participants__in=[p2])
+    if query.exists():
+        chat_obj = query[0]
+        messages_objs = chat_obj.messages.all()[:int(amount)]
+        serializer = MessageSerializer(messages_objs, many=True)
+        return Response(serializer.data)
+    else:
+        return Response({"message":"cannot get messages because no such Chat exist"})
     
     
