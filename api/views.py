@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth import authenticate, login
 from main.models import Profile, Message, Chat
-from .serializers import ProfileSerializer, MessageSerializer, ChatSerializer
+from .serializers import ProfileSerializer, MessageSerializer, FriendSerializer
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
 from django.http import JsonResponse, HttpResponse
@@ -10,6 +10,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth.models import User
 import uuid
 import json
+from rest_auth.views import LogoutView
 
 @api_view(["GET"])
 def profile(request, nick):
@@ -27,7 +28,7 @@ def profile(request, nick):
     return Response(data)
 
 @api_view(['POST'])
-@authentication_classes((TokenAuthentication,))
+@authentication_classes((SessionAuthentication, BasicAuthentication, TokenAuthentication,))
 #@permission_classes((IsAuthenticated,))
 def create_message(request):
     body_unicode = request.body.decode('utf-8')
@@ -88,7 +89,8 @@ def register_user(request):
     return Response({"message":"User and Profile created succesfully."})
 
 @api_view(['GET'])
-@authentication_classes((TokenAuthentication,))
+@authentication_classes((SessionAuthentication, BasicAuthentication, TokenAuthentication,))
+@permission_classes((IsAuthenticated,))
 def get_messages(request, interlocutor, amount):
     p1 = request.user.profile
     p2 = get_object_or_404(Profile, usercode=interlocutor)
@@ -101,4 +103,11 @@ def get_messages(request, interlocutor, amount):
     else:
         return Response({"message":"cannot get messages because no such Chat exist"})
     
-    
+@api_view(["GET"])
+@authentication_classes((SessionAuthentication, BasicAuthentication, TokenAuthentication,))
+@permission_classes((IsAuthenticated,))
+def get_friends(request):
+    profile = request.user.profile
+    qs = profile.friends.all()
+    serializer = FriendSerializer(qs, many=True)
+    return Response(serializer.data)

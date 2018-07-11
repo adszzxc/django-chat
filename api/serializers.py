@@ -21,9 +21,12 @@ class MessageSerializer(serializers.ModelSerializer):
                   "created",
                   "image",
                   "file")
-        
-class ChatSerializer(serializers.ModelSerializer):
-    message = MessageSerializer(many=True)
+    
+
+class FriendSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Chat
-        fields = 'message'
+        model = Profile
+        fields = ("nickname",
+                  "usercode",
+                  "avatar",
+                  "active")
