@@ -33,7 +33,7 @@ def profile(request, nick):
 @authentication_classes((TokenAuthentication, SessionAuthentication, BasicAuthentication,))
 #@permission_classes((IsAuthenticated,))
 def create_message(request):
-    
+    channel_layer = get_channel_layer()
     #decoding request.body, Python 3.5.X specific
     body_unicode = request.body.decode('utf-8')
     payload = json.loads(body_unicode)
@@ -49,18 +49,21 @@ def create_message(request):
     #checking if query exists, if not then a new Chat is created
     if query.exists():
         chat_obj = query[0]
+        #send message to websocket group of target Profile
+        async_to_sync(channel_layer.group_send)(str(p2.usercode),
+                                        {"type":"chat.message",
+                                            "usercode":str(p1.usercode),
+                                            "text":payload["content"]})
         Message.objects.create(chat=chat_obj,
                                author=p1,
                                content=payload["content"])
-        #send message to websocket group of target Profile
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send(
-            str(p2.usercode),
-            {"type":"chat.message",
-             "usercode":str(p1.usercode),
-             "text":payload["content"]}))
         return Response({"message":"sent message"})
     else:
+        #send message to websocket group of target Profile
+        async_to_sync(channel_layer.group_send)(str(p2.usercode),
+                                            {"type":"chat.message",
+                                            "usercode":str(p1.usercode),
+                                            "text":payload["content"]})
         chat_obj = Chat.objects.create()
         chat_obj.participants.add(p1)
         chat_obj.participants.add(p2)
@@ -68,13 +71,6 @@ def create_message(request):
         Message.objects.create(chat=chat_obj,
                                author=p1,
                                content=payload["content"])
-        #send message to websocket group of target Profile
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send(
-            str(p2.usercode),
-            {"type":"chat.message",
-            "usercode":str(p1.usercode),
-            "text":payload["content"]}))
         return Response({"message":"created Chat, sent message"})
 
 

@@ -19,7 +19,7 @@ class TokenAuthMiddleware:
         try:
             token = Token.objects.get(key=token_key)
             scope['user'] = token.user
-        except Token.DoesNotExists:
+        except Token.DoesNotExist:
             scope['user'] = AnonymousUser()
         return self.inner(scope)
 
