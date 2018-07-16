@@ -1,4 +1,5 @@
+{% load staticfiles %}
 body {
-	background-image: url("http://chat.aitomx.com/static/bg.jpg");
+	background-image: url("/static/bg.jpg");
 	background-size: cover;
 }
