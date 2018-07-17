@@ -1,4 +1,35 @@
 {% extends "base.html" %}
 {% block content %}
-<p style="color: white;">Ten napis będzie gdzieś tutaj pośrodku, nad dodanym niedługo formularzem rejestracji/logowania. :-) Wydaje mi się, że powinien być biały/szary żeby dobrze kontrastować z tłem.</p>
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-sm-4"></div>
+			<div class="col-sm-4">
+			<h3 id="headertext" style="color: white;">Django Chat</h3></div>
+			<div class="col-sm-4"></div>
+		</div>
+		<div class="row">
+			<div class="col-sm-4"></div>
+			<div class="col-sm-4">
+			<div class="card">
+				<div id="cardtext" class="card-body">
+					<h4 class="text-center">Register or <a href="#">login</a></h4>
+				</div>
+			</div>
+			<div class="card">
+				<div id="cardtext" class="card-body">
+					<div class="text-center">Center aligned text on all viewport sizes.</div>
+				</div>
+			</div>
+			</div>
+			<div class="col-sm-4"></div>
+		</div>
+	</div>
+<script type="text/javascript">
+$("div").hide()
+$(document).ready(function(){ 
+						   
+	$("div").fadeIn("1000");
+	
+});
+</script>
 {% endblock %}

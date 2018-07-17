@@ -1,10 +1,10 @@
-from channels.generic.websocket import WebsocketConsumer
+from channels.generic.websocket import WebsocketConsumer, JsonWebsocketConsumer
 from django.contrib.auth.models import User
 from asgiref.sync import async_to_sync
 from main.models import Profile
 
 
-class ChatConsumer(WebsocketConsumer):
+class ChatConsumer(JsonWebsocketConsumer):
     #w razie jak coś się będzie psuło to trzeba zmienić nazwę.
     
     def connect(self):
@@ -14,4 +14,4 @@ class ChatConsumer(WebsocketConsumer):
     def disconnect(self, close_code):
         async_to_sync(self.channel_layer.group_discard)(str(self.usercode), self.channel_name)
     def chat_message(self, event):
-        self.send(text_data=event["text"])
+        self.send_json(content=event)
