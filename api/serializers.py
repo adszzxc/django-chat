@@ -1,11 +1,11 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from main.models import Profile, Chat, Message
+from main.models import Chat, Message, User
 
 class ProfileSerializer(serializers.ModelSerializer):
     friends = serializers.StringRelatedField(many=True)
     class Meta:
-        model = Profile
+        model = User
         fields = "__all__"
 
 class MessageSerializer(serializers.ModelSerializer):
@@ -25,8 +25,8 @@ class MessageSerializer(serializers.ModelSerializer):
 
 class FriendSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Profile
+        model = User
         fields = ("nickname",
                   "usercode",
                   "avatar",
-                  "active")
+                  "is_active")

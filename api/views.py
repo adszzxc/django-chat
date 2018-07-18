@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth import authenticate, login
-from main.models import Profile, Message, Chat
+from main.models import Message, Chat
 from .serializers import ProfileSerializer, MessageSerializer, FriendSerializer
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
@@ -13,11 +13,12 @@ import json
 from rest_auth.views import LogoutView
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from main.models import User
 
 @api_view(["GET"])
 def profile(request, nick):
     try:
-        profile = Profile.objects.get(nickname=nick)
+        profile = User.objects.get(nickname=nick)
         serializer = ProfileSerializer(profile)
         if request.user.is_authenticated:
             data = serializer.data
@@ -40,8 +41,8 @@ def create_message(request):
 
     usercode = payload["usercode"]
     #getting users, one is authenticated and other will throw 404 if doesn't exist
-    p1 = request.user.profile
-    p2 = get_object_or_404(Profile, usercode=usercode)
+    p1 = request.user
+    p2 = get_object_or_404(User, usercode=usercode)
 
     #creating a Chat queryset that contains both Profiles as participants
     query = Chat.objects.filter(participants__in=[p1]).filter(participants__in=[p2])
@@ -89,35 +90,23 @@ def register_user(request):
     body_unicode = request.body.decode('utf-8')
     payload = json.loads(body_unicode)
     #getting registration details
-    username = payload["username"]
+    nickname = payload["nickname"]
     password = payload["password"]
     email = payload["email"]
 
     #creating User object
-    user_obj = User.objects.create(username=username,
+    user_obj = User.objects.create(nickname=nickname,
                                    password=password,
                                    email=email)
-
-    #generating secret usercode used in various places of the project
-    while True:
-        usercode = uuid.uuid4().hex[:10]
-        if Profile.objects.filter(usercode=usercode).exists():
-            pass
-        else:
-            break
-    #creating Profile related to the previously created User
-    profile_obj = Profile.objects.create(user=user_obj,
-                                        nickname=user_obj.username,
-                                        usercode=usercode)
-    return Response({"message":"User and Profile created succesfully."})
+    return Response({"message":"User created succesfully."})
 
 @api_view(['GET'])
 @authentication_classes((SessionAuthentication, BasicAuthentication, TokenAuthentication,))
 @permission_classes((IsAuthenticated,))
 def get_messages(request, interlocutor, amount):
     #getting Profiles
-    p1 = request.user.profile
-    p2 = get_object_or_404(Profile, usercode=interlocutor)
+    p1 = request.user
+    p2 = get_object_or_404(User, usercode=interlocutor)
     #setting query as in create_message
     query = Chat.objects.filter(participants__in=[p1]).filter(participants__in=[p2])
     if query.exists():
@@ -133,8 +122,8 @@ def get_messages(request, interlocutor, amount):
 @authentication_classes((SessionAuthentication, BasicAuthentication, TokenAuthentication,))
 @permission_classes((IsAuthenticated,))
 def get_friends(request):
-    profile = request.user.profile
-    #get all friends of a Profile
+    profile = request.user
+    #get all friends of User
     qs = profile.friends.all()
     serializer = FriendSerializer(qs, many=True)
     return Response(serializer.data)

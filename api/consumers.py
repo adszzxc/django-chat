@@ -1,12 +1,10 @@
 from channels.generic.websocket import WebsocketConsumer, JsonWebsocketConsumer
 from django.contrib.auth.models import User
 from asgiref.sync import async_to_sync
-from main.models import Profile
 
 
-class ChatConsumer(JsonWebsocketConsumer):
-    #w razie jak coś się będzie psuło to trzeba zmienić nazwę.
-    
+
+class ChatConsumer(JsonWebsocketConsumer):   
     def connect(self):
         self.accept()
         self.usercode = self.scope["url_route"]["kwargs"]["usercode"]
