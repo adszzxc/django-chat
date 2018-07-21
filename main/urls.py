@@ -4,4 +4,6 @@ from . import views
 
 urlpatterns = [
     path("", views.index, name="index"),
+    path("login/", views.main_login, name="login"),
+    path("activate/<str:usercode>/<str:token>/", views.activate, name="activate"),
 ]

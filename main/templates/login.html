@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block content %}
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-sm-4"></div>
+			<div class="col-sm-4">
+			<!-- <h3 id="headertext" style="color: white;">Django Chat</h3></div> -->
+			<img src="{% static "worktitle.png" %}" class="img-fluid" alt="Responsive image">
+			<div class="col-sm-4"></div>
+		</div>
+		</div>
+		<div class="row">
+			<div class="col-sm-4"></div>
+			<div class="col-sm-4">
+			<div class="card">
+				<div id="cardtext" class="card-body">
+				<h4><a href="#" id="register-click">Zarejestruj się</a> lub <a href="#" id="login-click">zaloguj</a>.</h4>
+				</div>
+			</div>
+			<div class="card">
+				<div id="cardtext" class="card-body">
+					<div class="text-center">
+						<form action="." method="post" style="display: none;" id="register-form">
+							{{ register_form.as_p }}
+							<input type="submit" value="rejestruj"/>
+							{% csrf_token %}
+						</form>
+						<form action="." method="post" id="login-form">
+							{{ login_form.as_p }}
+							{% csrf_token %}
+							<input type="submit" value="zaloguj"/>
+						</form>
+					</div>
+				</div>
+			</div>
+			</div>
+			<div class="col-sm-4"></div>
+		</div>
+	</div>
+<script type="text/javascript">
+$("#login-click").click(function(){
+	$("#register-form").css("display", "none");
+	$("#login-form").fadeIn();
+})
+$("#register-click").click(function(){
+	$("#login-form").css("display", "none");
+	$("#register-form").fadeIn();
+})
+</script>
+{% endblock %}

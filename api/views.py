@@ -95,9 +95,14 @@ def register_user(request):
     email = payload["email"]
 
     #creating User object
-    user_obj = User.objects.create(nickname=nickname,
-                                   password=password,
-                                   email=email)
+    user_obj, created = User.objects.get_or_create(email=email,
+                                nickname=nickname,)
+    user_obj.set_password(password)
+    user_obj.is_active = True
+    user_obj.save()
+##    user_obj = User.objects.create(nickname=nickname,
+##                                   password=password,
+##                                   email=email)
     return Response({"message":"User created succesfully."})
 
 @api_view(['GET'])

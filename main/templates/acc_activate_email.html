@@ -1,0 +1,5 @@
+{% autoescape off %}
+Cześć {{ user.nickname }},
+Proszę kliknij w poniższy link aby potwierdzić swoją rejestrację w serwisie.
+http://{{ domain }}{% url 'activate' usercode=usercode token=token %}
+{% endautoescape %}

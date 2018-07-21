@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block content %}
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-sm-4"></div>
+			<div class="col-sm-4">
+			<!-- <h3 id="headertext" style="color: white;">Django Chat</h3></div> -->
+			<img src="{% static "worktitle.png" %}" class="img-fluid" alt="Responsive image">
+			<div class="col-sm-4"></div>
+		</div>
+		</div>
+		<div class="row">
+			<div class="col-sm-4"></div>
+			<div class="col-sm-4">
+			<div class="card">
+				<div id="cardtext" class="card-body">
+					<div class="text-center">
+					<p>{{ infostring }}</p>
+					</div>
+				</div>
+			</div>
+			</div>
+			<div class="col-sm-4"></div>
+		</div>
+	</div>
+
+{% endblock %}

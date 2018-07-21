@@ -69,7 +69,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ["nickname"]
 
     def __str__(self):
-        return "{} {}".format(self.nickname, self.usercode)
+        return "User {}".format(self.nickname)
 
     def get_full_name(self):
         full_name = "User {} {}".format(self.nickname, self.usercode)

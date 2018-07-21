@@ -46,6 +46,27 @@ class UserChangeForm(forms.ModelForm):
         # field does not have access to the initial value
         return self.initial["password"]
 
-admin.site.register(User)
+class UserAdmin(BaseUserAdmin):
+    form = UserChangeForm
+    add_form = UserCreationForm
+    list_display = ('nickname', 'usercode', 'email')
+    list_filter = ('is_admin',)
+    fieldsets = (
+        (None, {"fields":('email', 'password', 'usercode')}),
+        ("Personal info", {"fields": ("nickname", "avatar", "friends",)}),
+        ("Permissions", {"fields":("is_admin",)}),
+        )
+    add_fieldsets = (
+        (None, {
+            'classes':('wide',),
+            'fields':('email','nickname','password1', 'password2')}
+         ),
+        )
+    ordering = ("nickname",)
+    search_fields = ("nickname", "email", "usercode")
+    filter_horizontal = ()
+
+admin.site.register(User, UserAdmin)
 admin.site.register(Chat)
 admin.site.register(Message)
+admin.site.unregister(Group)
