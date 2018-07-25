@@ -10,6 +10,9 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.template.loader import render_to_string
 from .tokens import account_activation_token
 from django.core.mail import EmailMessage
+from rest_framework.authtoken.models import Token
+from django.contrib.auth import logout
+from django.db import IntegrityError
 
 def main_login(request):
     if request.method == "POST":
@@ -20,13 +23,13 @@ def main_login(request):
                 nickname = cd["nickname"]
                 password = cd["password"]
                 email = cd["email"]
-                new_user, created = User.objects.get_or_create(email=email,
-                                nickname=nickname,)
-                new_user.set_password(password)
-                new_user.is_active = False
                 try:
+                    new_user, created = User.objects.get_or_create(email=email,
+                                    nickname=nickname,)
+                    new_user.set_password(password)
+                    new_user.is_active = False
                     new_user.save()
-                except:
+                except IntegrityError:
                     return render(request, "infostring.html", {"infostring":"There's already a user with this email!"})
                 current_site = get_current_site(request)
                 message = render_to_string("acc_activate_email.html", {
@@ -70,10 +73,17 @@ def activate(request, usercode, token):
     if user is not None and account_activation_token.check_token(user, token):
         user.is_active = True
         user.save()
+        Token.objects.create(user=user)
         return redirect("index")
     else:
         return render(request, "infostring.html", {"infostring":"Activation link is invalid!"})
 
 @login_required
 def index(request):
-    return render(request, "index.html")
+    token = Token.objects.get(user=request.user)
+    return render(request, "index.html", {"token":token,})
+
+@login_required
+def logout_view(request):
+    logout(request)
+    return redirect("index")

@@ -14,6 +14,8 @@ from rest_auth.views import LogoutView
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from main.models import User
+from rest_framework.authtoken.models import Token
+from django.db import IntegrityError
 
 @api_view(["GET"])
 def profile(request, nick):
@@ -24,7 +26,7 @@ def profile(request, nick):
             data = serializer.data
         else:
             data = {
-                "message":"user is not authenticated!"
+                "status":"401"
                 }
     except Exception as E:
         data = {"message":str(E)}
@@ -32,7 +34,7 @@ def profile(request, nick):
 
 @api_view(['POST'])
 @authentication_classes((TokenAuthentication, SessionAuthentication, BasicAuthentication,))
-#@permission_classes((IsAuthenticated,))
+@permission_classes((IsAuthenticated,))
 def create_message(request):
     channel_layer = get_channel_layer()
     #decoding request.body, Python 3.5.X specific
@@ -54,17 +56,19 @@ def create_message(request):
         async_to_sync(channel_layer.group_send)(str(p2.usercode),
                                         {"type":"chat.message",
                                             "usercode":str(p1.usercode),
-                                            "text":payload["content"]})
+                                            "text":payload["content"],
+                                         "nickname":str(request.user.nickname),})
         Message.objects.create(chat=chat_obj,
                                author=p1,
                                content=payload["content"])
-        return Response({"message":"sent message"})
+        return Response({"status":"200"})
     else:
         #send message to websocket group of target Profile
         async_to_sync(channel_layer.group_send)(str(p2.usercode),
                                             {"type":"chat.message",
                                             "usercode":str(p1.usercode),
-                                            "text":payload["content"]})
+                                            "text":payload["content"],
+                                             "nickname":str(request.user.nickname),})
         chat_obj = Chat.objects.create()
         chat_obj.participants.add(p1)
         chat_obj.participants.add(p2)
@@ -72,7 +76,7 @@ def create_message(request):
         Message.objects.create(chat=chat_obj,
                                author=p1,
                                content=payload["content"])
-        return Response({"message":"created Chat, sent message"})
+        return Response({"status":"201"})
 
 
 
@@ -95,15 +99,19 @@ def register_user(request):
     email = payload["email"]
 
     #creating User object
-    user_obj, created = User.objects.get_or_create(email=email,
-                                nickname=nickname,)
-    user_obj.set_password(password)
-    user_obj.is_active = True
-    user_obj.save()
+    try:
+        user_obj, created = User.objects.get_or_create(email=email,
+                                    nickname=nickname,)
+        user_obj.set_password(password)
+        user_obj.is_active = True
+        user_obj.save()
+        token = Token.objects.create(user=user_obj)
+    except IntegrityError:
+        return Response({"status":"400"})
 ##    user_obj = User.objects.create(nickname=nickname,
 ##                                   password=password,
 ##                                   email=email)
-    return Response({"message":"User created succesfully."})
+    return Response({"status":"201"})
 
 @api_view(['GET'])
 @authentication_classes((SessionAuthentication, BasicAuthentication, TokenAuthentication,))
@@ -117,11 +125,11 @@ def get_messages(request, interlocutor, amount):
     if query.exists():
         chat_obj = query[0]
         #getting objects according to requested amount
-        messages_objs = chat_obj.messages.all()[:int(amount)]
+        messages_objs = chat_obj.messages.all().order_by('created')[:int(amount)]
         serializer = MessageSerializer(messages_objs, many=True)
         return Response(serializer.data)
     else:
-        return Response({"message":"cannot get messages because no such Chat exist"})
+        return Response({"status":"404"})
     
 @api_view(["GET"])
 @authentication_classes((SessionAuthentication, BasicAuthentication, TokenAuthentication,))
@@ -132,3 +140,18 @@ def get_friends(request):
     qs = profile.friends.all()
     serializer = FriendSerializer(qs, many=True)
     return Response(serializer.data)
+
+@api_view(["GET"])
+@authentication_classes((SessionAuthentication, BasicAuthentication, TokenAuthentication,))
+@permission_classes((IsAuthenticated,))
+def add_friend(request, usercode):
+    try:
+        friend = User.objects.get(usercode=usercode)
+    except User.DoesNotExist:
+        return Response({"status":"404"})
+    user = request.user
+    if friend in user.friends.all():
+        return Response({"status":"200"})
+    user.friends.add(friend)
+    user.save()
+    return Response({"status":"201"})

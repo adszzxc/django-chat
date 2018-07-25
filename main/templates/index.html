@@ -14,17 +14,29 @@
 			<div class="col-sm-3"></div>
 				<div class="col-sm-2 p-0">
 					<div  id="chat-personalinfo" class="w-100">
-					<div>
+						<div class="d-inline" id="img">
+						{% if request.user.avatar %}
 							<img id="profileimage" src="{{ request.user.avatar.url }}" width=120 height=120 class="d-inline rounded p-1 img-responsive"/>
-							<div class="d-inline pl-5">{{ request.user.usercode }}</div>
-					</div>	
+						{% else %}
+							<img id="profileimage" src="{% static "avimg.jpg" %}" width=120 height=120 class="d-inline rounded p-1 img-responsive"/>
+						{% endif %}
+						<span class="text-center" id="infoblock" >
+							<span>{{ request.user.nickname }}</span>
+							<span>{{ request.user.usercode }}</span>
+						</span>
+						</div>
+						<div class="d-inline" id="actions" style="margin-bottom: 5px;">
+							<div class="actionbutton" onclick="friend_prompt()">add friend</div>
+							<div class="actionbutton" onclick="window.location.href = '{% url 'logout' %}'">logout</div>
+						</div>
 					</div>
 					<div id="chat-rollup" class="w-100 d-block"><span class="text-center">roll up</span></div>
 				<div id="chat-contacts" class="w-100 mh-50 d-block p-1">
 					{% for friend in request.user.friends.all %}
-						<div class="friend-panel" id="{{ friend.usercode }}">
+						<div class="friend-panel noselect" id="{{ friend.usercode }}" onclick="change('{{ friend.nickname }}', '{{ friend.usercode }}')">
 							<div class="text-center">
-							<span>{{ friend.nickname }}<br>{{ friend.usercode }}</span>
+							<span>{{ friend.nickname }} <span class="counter" id="counter-{{ friend.usercode }}"></span><br>
+							{{ friend.usercode }}</span>
 							</div>
 						</div>
 					{% endfor %}
@@ -32,15 +44,20 @@
 				</div>
 				<div class="col-sm-4 p-0">
 				<div id="chat-topspace" class="w-100 text-center">
-					<span class="text-center" style="color: white;">{{ request.user.nickname }} ({{ request.user.usercode }})</span>
+					<span class="text-center" id="topdisplay">Hello, {{ request.user.nickname }}</span>
 				</div>
 					<div id="chat-messengerblock" class="w-100 mh-75">
 						<div class="w-100 d-block p-3" style="height: 59%" id="">
-							<div class="h-100 w-100" id="messagefield"></div>
+							<div class="h-100 w-100" id="messagefield">
+							</div>
 						</div>
 						<div class="w-100 d-block" id="inputfield">
-							<textarea class="d-inline w-75" style="resize: none; padding-bottom: 0;"></textarea>
-							<input class="d-inline" type="submit" value="send a message"></input>
+							<div id="areablock" class="d-inline w-75">
+								<textarea id="areainput" class="d-inline w-100" style="resize: none; padding-bottom: 0;" rows=3></textarea>
+							</div>
+							<div id="buttonbuttonblock" class="d-inline w-25">
+								<input id="button" class="d-inline w-100" type="submit" value="send a message" onclick="send_message()"></input>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -50,9 +67,11 @@
 	</div>
 <script type="text/javascript">
 var usercode = "{{ request.user.usercode }}";
+var currentlySelected = new String();
 var rolled = 0;
-$("#chat-rollup").click(function(){
 
+//rollup animations
+$("#chat-rollup").click(function(){
 	if (rolled == 0){
 		$("#chat-contacts").slideUp("fast", function(){
 			$("#chat-contacts").removeClass("d-block");
@@ -68,5 +87,146 @@ $("#chat-rollup").click(function(){
 			rolled = rolled - 1;
 	})
 }});
+
+// changing top information
+function change(param, param2){
+	if(currentlySelected == param2){
+	}
+	else{
+		currentlySelected = param2;
+		$("#topdisplay").text(param + ' (' + param2 + ')');
+		$.get("http://chat.aitomx.com/api/messages/retrieve/" + param2 + "/10/").done(function(data){
+			$('#messagefield').empty();
+			console.log(data);
+			if (data.status != "404"){
+				for (var key in data){
+					create_messageblock(data[key].author, data[key].content)
+				};
+			};
+			var counter = $("#counter-" + param2);
+			counter.text('');
+			counter.css("display", "none");
+		});
+	};
+}
+
+//creating websocket
+var webSocket = $.simpleWebSocket({ url: 'ws://chat.aitomx.com/ws/usercode/{{ request.user.usercode }}/{{ token }}/' });
+    // reconnected listening
+    webSocket.listen(function(message) {
+        if (message.usercode == currentlySelected){
+			console.log("Message from currently selected user.")
+			create_messageblock(message.usercode, message.text)
+		}
+		else{
+			if(document.getElementById(message.usercode)){
+				if ($("#counter-" + message.usercode).css("display") == "none"){
+					var counter = $("#counter-" + message.usercode);
+					counter.text('1');
+					counter.css("display", "inline");
+				}
+				else{
+					var counter = $("#counter-" + message.usercode);
+					var value = parseInt(counter.text());
+					value = value + 1;
+					counter.text(String(value));
+				}
+			}
+			else{
+				var panel = $("#chat-contacts");
+				panel.append(
+					'<div class="friend-panel-unconfirmed noselect" '+
+						'id="' + message.usercode +'"' +
+							"onclick=" + "change(" + "'" + message.nickname + "'" + "," + "'" + message.usercode + "')" + ">" +
+						'<div class="text-center">'+
+							'<span>' + message.nickname + ' <span class="counter" id="counter-' + message.usercode + '"></span><br>'+
+							message.usercode + '</span>' +
+						'</div>' +
+					'</div>'
+				);
+				console.log("Outside!");
+			};
+		};
+    });
+
+    webSocket.send({ 'text': 'hello' }).done(function() {
+        // message send
+    }).fail(function(e) {
+        // error sending
+    });
+	
+//add mesageblock
+function create_messageblock(code, message){
+	if (code == "{{ request.user.usercode }}"){
+		var id =  "messageblock-me";
+	}
+	else{
+		var id =  "messageblock";
+	};
+	$('#messagefield').append('<div id="blockid">msg</div>'.replace("blockid", id).replace("msg", message)); 
+}
+
+function send_message(){
+	var text = $("#areainput").val();
+	if (text != ''){
+		$("#areainput").val('');
+		$.ajax({
+		headers: {
+			"Authorization":"Token tkz".replace("tkz", "{{ token }}"),
+		},
+		type: "post",
+		url: "/api/messages/create/",
+		data: JSON.stringify({ "usercode" : new String(currentlySelected), "content" : new String(text)}),
+		contentType: "application/json; charset=utf-8",
+		dataType: "json",
+		success: function(data){
+		create_messageblock("{{ request.user.usercode }}", text);
+		},
+		failure: function(errMsg) {
+        console.log(errMsg);
+		}
+	});
+	}
+}
+
+$(document).keydown(function(e) {
+    switch(e.which) {
+        case 37: // left
+        break;
+
+        case 38: // up
+        break;
+
+        case 39: // right
+        break;
+
+        case 40: // down
+        break;
+		
+		case 13:
+		send_message();
+		break
+
+        default: return; // exit this handler for other keys
+    }
+    e.preventDefault(); // prevent the default action (scroll / move caret)
+});
+
+function friend_prompt(){
+	var usercode = prompt("Enter usercode");
+	if (usercode != null && usercode != ''){
+		 $.get("http://chat.aitomx.com/api/friends/add/" + usercode + "/", function(data){
+			if(data.status == "201"){
+				location.reload();
+			}
+			else if(data.status == "200"){
+				alert("Already friends!");
+			}
+			else{
+				alert("Error!");
+			}
+		});
+	};
+};
 </script>
 {% endblock %}

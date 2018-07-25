@@ -7,5 +7,6 @@ urlpatterns = [
     path('registration/', views.register_user),
     path("messages/create/", views.create_message),
     path("messages/retrieve/<str:interlocutor>/<int:amount>/", views.get_messages),
-    path("friends/", views.get_friends),
+    path("friends/retrieve/", views.get_friends),
+    path("friends/add/<str:usercode>/", views.add_friend),
 ]
