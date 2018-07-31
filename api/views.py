@@ -16,6 +16,7 @@ from asgiref.sync import async_to_sync
 from main.models import User
 from rest_framework.authtoken.models import Token
 from django.db import IntegrityError
+from rest_framework import status
 
 @api_view(["GET"])
 def profile(request, nick):
@@ -25,12 +26,14 @@ def profile(request, nick):
         if request.user.is_authenticated:
             data = serializer.data
         else:
-            data = {
-                "status":"401"
+            response_content = {
+                "message":"success"
                 }
+            code=status.HTTP_200_OK
     except Exception as E:
-        data = {"message":str(E)}
-    return Response(data)
+        response_content = {"message":str(E)}
+        code=status.HTTP_500_INTERNAL_SERVER_ERROR
+    return Response(response_content, status=code)
 
 @api_view(['POST'])
 @authentication_classes((TokenAuthentication, SessionAuthentication, BasicAuthentication,))
@@ -61,7 +64,9 @@ def create_message(request):
         Message.objects.create(chat=chat_obj,
                                author=p1,
                                content=payload["content"])
-        return Response({"status":"200"})
+        response_content = {"message":"sent message"}
+        code = status.HTTP_200_OK
+        return Response(response_content, status=code)
     else:
         #send message to websocket group of target Profile
         async_to_sync(channel_layer.group_send)(str(p2.usercode),
@@ -76,7 +81,9 @@ def create_message(request):
         Message.objects.create(chat=chat_obj,
                                author=p1,
                                content=payload["content"])
-        return Response({"status":"201"})
+        response_content = {"message":"sent message, created chat"}
+        code = status.HTTP_201_CREATED
+        return Response(response_content, status=code)
 
 
 
@@ -107,11 +114,15 @@ def register_user(request):
         user_obj.save()
         token = Token.objects.create(user=user_obj)
     except IntegrityError:
-        return Response({"status":"400"})
+        response_content = {"message":"user with this email exists"}
+        code = status.HTTP_400_BAD_REQUEST
+        return Response(response_content, status=code)
 ##    user_obj = User.objects.create(nickname=nickname,
 ##                                   password=password,
 ##                                   email=email)
-    return Response({"status":"201"})
+    response_content = {"message":"created user"}
+    code = status.HTTP_201_CREATED
+    return Response(response_content, status=code)
 
 @api_view(['GET'])
 @authentication_classes((SessionAuthentication, BasicAuthentication, TokenAuthentication,))
@@ -129,7 +140,9 @@ def get_messages(request, interlocutor, amount):
         serializer = MessageSerializer(messages_objs, many=True)
         return Response(serializer.data)
     else:
-        return Response({"status":"404"})
+        response_content = {"message":"no messages!"}
+        code = status.HTTP_404_NOT_FOUND
+        return Response(response_content, status=code)
     
 @api_view(["GET"])
 @authentication_classes((SessionAuthentication, BasicAuthentication, TokenAuthentication,))
@@ -148,10 +161,20 @@ def add_friend(request, usercode):
     try:
         friend = User.objects.get(usercode=usercode)
     except User.DoesNotExist:
-        return Response({"status":"404"})
+        response_content = {"message":"user does not exist!"}
+        code = status.HTTP_404_NOT_FOUND
+        return Response(response_content, status=code)
     user = request.user
+    if user == friend:
+        response_content = {"message":"you can't add yourself to friends!"}
+        code = status.HTTP_403_FORBIDDEN
+        return Response(response_content, status=code)
     if friend in user.friends.all():
-        return Response({"status":"200"})
+        response_content = {"message":"user already in friends!"}
+        code = status.HTTP_200_OK
+        return Response(response_content, status=code)
     user.friends.add(friend)
     user.save()
-    return Response({"status":"201"})
+    response_content = {"message":"added user to friends!"}
+    code = status.HTTP_201_CREATED
+    return Response(response_content, status=code)

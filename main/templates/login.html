@@ -21,7 +21,7 @@
 			<div class="card">
 				<div id="cardtext" class="card-body">
 					<div class="text-center">
-						<form action="." method="post" style="display: none;" id="register-form">
+						<form action="." method="post" style="display: none;" id="register-form" enctype="multipart/form-data">
 							{{ register_form.as_p }}
 							<input type="submit" value="rejestruj"/>
 							{% csrf_token %}

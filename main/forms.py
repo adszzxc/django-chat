@@ -13,3 +13,4 @@ class RegisterForm(Form):
     nickname = forms.CharField(label="nick")
     password = forms.CharField(widget=forms.PasswordInput(),
                                label="hasło")
+    avatar = forms.ImageField(required=False)

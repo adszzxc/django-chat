@@ -17,15 +17,17 @@ from django.db import IntegrityError
 def main_login(request):
     if request.method == "POST":
         if "nickname" in str(request.POST):
-            form = forms.RegisterForm(request.POST)
+            form = forms.RegisterForm(request.POST, request.FILES)
             if form.is_valid():
                 cd = form.cleaned_data
                 nickname = cd["nickname"]
                 password = cd["password"]
                 email = cd["email"]
+                avatar = cd["avatar"]
                 try:
                     new_user, created = User.objects.get_or_create(email=email,
-                                    nickname=nickname,)
+                                    nickname=nickname,
+                                    avatar=avatar)
                     new_user.set_password(password)
                     new_user.is_active = False
                     new_user.save()

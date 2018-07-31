@@ -5,7 +5,6 @@
 		<div class="row">
 			<div class="col-sm-4"></div>
 			<div class="col-sm-4">
-			<!-- <h3 id="headertext" style="color: white;">Django Chat</h3></div> -->
 			<img src="{% static "worktitle.png" %}" class="img-fluid" alt="Responsive image">
 			<div class="col-sm-4"></div>
 		</div>
@@ -13,25 +12,25 @@
 		<div class="row">
 			<div class="col-sm-3"></div>
 				<div class="col-sm-2 p-0">
-					<div  id="chat-personalinfo" class="w-100">
+					<div  id="chat-personalinfo" class="w-100 chat-personalinfo">
 						<div class="d-inline" id="img">
 						{% if request.user.avatar %}
-							<img id="profileimage" src="{{ request.user.avatar.url }}" width=120 height=120 class="d-inline rounded p-1 img-responsive"/>
+							<img id="profileimage" src="{{ request.user.avatar.url }}" width=120 height=120 class="d-inline rounded p-1 img-responsive profileimage"/>
 						{% else %}
-							<img id="profileimage" src="{% static "avimg.jpg" %}" width=120 height=120 class="d-inline rounded p-1 img-responsive"/>
+							<img id="profileimage" src="{% static "avimg.jpg" %}" width=120 height=120 class="d-inline rounded p-1 img-responsive profileimage"/>
 						{% endif %}
-						<span class="text-center" id="infoblock" >
+						<span class="text-center infoblock" id="infoblock" >
 							<span>{{ request.user.nickname }}</span>
 							<span>{{ request.user.usercode }}</span>
 						</span>
 						</div>
-						<div class="d-inline" id="actions" style="margin-bottom: 5px;">
+						<div class="d-inline actions" id="actions">
 							<div class="actionbutton" onclick="friend_prompt()">add friend</div>
 							<div class="actionbutton" onclick="window.location.href = '{% url 'logout' %}'">logout</div>
 						</div>
 					</div>
-					<div id="chat-rollup" class="w-100 d-block"><span class="text-center">roll up</span></div>
-				<div id="chat-contacts" class="w-100 mh-50 d-block p-1">
+					<div id="chat-rollup" class="w-100 d-block chat-rollup"><span class="text-center rollup-text">roll up</span></div>
+				<div id="chat-contacts" class="w-100 mh-50 d-block p-1 chat-contacts">
 					{% for friend in request.user.friends.all %}
 						<div class="friend-panel noselect" id="{{ friend.usercode }}" onclick="change('{{ friend.nickname }}', '{{ friend.usercode }}')">
 							<div class="text-center">
@@ -43,20 +42,20 @@
 				</div>
 				</div>
 				<div class="col-sm-4 p-0">
-				<div id="chat-topspace" class="w-100 text-center">
-					<span class="text-center" id="topdisplay">Hello, {{ request.user.nickname }}</span>
+				<div id="chat-topspace" class="w-100 text-center chat-topspace">
+					<span class="text-center topdisplay" id="topdisplay">Hello, {{ request.user.nickname }}</span>
 				</div>
-					<div id="chat-messengerblock" class="w-100 mh-75">
-						<div class="w-100 d-block p-3" style="height: 59%" id="">
-							<div class="h-100 w-100" id="messagefield">
+					<div id="chat-messengerblock" class="w-100 mh-75 chat-messengerblock">
+						<div class="w-100 d-block p-3 messagefield-parent" id="">
+							<div class="h-100 w-100 messagefield" id="messagefield">
 							</div>
 						</div>
-						<div class="w-100 d-block" id="inputfield">
-							<div id="areablock" class="d-inline w-75">
-								<textarea id="areainput" class="d-inline w-100" style="resize: none; padding-bottom: 0;" rows=3></textarea>
+						<div class="w-100 d-block inputfield" id="inputfield">
+							<div id="areablock" class="d-inline w-75 areablock">
+								<textarea id="areainput" class="d-inline w-100 areainput" rows=3></textarea>
 							</div>
-							<div id="buttonbuttonblock" class="d-inline w-25">
-								<input id="button" class="d-inline w-100" type="submit" value="send a message" onclick="send_message()"></input>
+							<div id="buttonblock" class="d-inline w-25 buttonblock">
+								<input id="button"  class="d-inline w-100 button" type="submit" value="send a message" onclick="send_message()"></input>
 							</div>
 						</div>
 					</div>
@@ -95,18 +94,15 @@ function change(param, param2){
 	else{
 		currentlySelected = param2;
 		$("#topdisplay").text(param + ' (' + param2 + ')');
-		$.get("http://chat.aitomx.com/api/messages/retrieve/" + param2 + "/10/").done(function(data){
+		$.get("http://chat.aitomx.com/api/messages/retrieve/" + param2 + "/10/").done(function(data, status){
 			$('#messagefield').empty();
-			console.log(data);
-			if (data.status != "404"){
-				for (var key in data){
-					create_messageblock(data[key].author, data[key].content)
-				};
+			for (var key in data){
+				create_messageblock(data[key].author, data[key].content)
 			};
 			var counter = $("#counter-" + param2);
 			counter.text('');
 			counter.css("display", "none");
-		});
+		}).fail($('#messagefield').empty());
 	};
 }
 
@@ -144,7 +140,6 @@ var webSocket = $.simpleWebSocket({ url: 'ws://chat.aitomx.com/ws/usercode/{{ re
 						'</div>' +
 					'</div>'
 				);
-				console.log("Outside!");
 			};
 		};
     });
@@ -159,11 +154,13 @@ var webSocket = $.simpleWebSocket({ url: 'ws://chat.aitomx.com/ws/usercode/{{ re
 function create_messageblock(code, message){
 	if (code == "{{ request.user.usercode }}"){
 		var id =  "messageblock-me";
+		var cls =  "messageblock-me";
 	}
 	else{
 		var id =  "messageblock";
+		var cls =  "messageblock";
 	};
-	$('#messagefield').append('<div id="blockid">msg</div>'.replace("blockid", id).replace("msg", message)); 
+	$('#messagefield').append('<div id="' + id + '" class="' + cls + '">msg</div>'.replace("msg", message)); 
 }
 
 function send_message(){
@@ -172,7 +169,7 @@ function send_message(){
 		$("#areainput").val('');
 		$.ajax({
 		headers: {
-			"Authorization":"Token tkz".replace("tkz", "{{ token }}"),
+			"Authorization":"Token tkn".replace("tkn", "{{ token }}"),
 		},
 		type: "post",
 		url: "/api/messages/create/",
@@ -215,15 +212,25 @@ $(document).keydown(function(e) {
 function friend_prompt(){
 	var usercode = prompt("Enter usercode");
 	if (usercode != null && usercode != ''){
-		 $.get("http://chat.aitomx.com/api/friends/add/" + usercode + "/", function(data){
-			if(data.status == "201"){
-				location.reload();
-			}
-			else if(data.status == "200"){
-				alert("Already friends!");
-			}
-			else{
-				alert("Error!");
+		if (usercode == "{{ request.user.usercode }}"){
+			alert("You can't add yourself to friends. (go out and make some!)");
+			return
+		};
+		$.ajax({
+			url: "http://chat.aitomx.com/api/friends/add/" + usercode + "/",
+			statusCode: {
+				404: function(){
+					alert( "User not found!" );
+				},
+				201: function(){
+					location.reload();
+				},
+				200: function(){
+					alert("Already friends!");
+				},
+				403: function(){
+					alert("You can't add yourself to friends!");
+				},
 			}
 		});
 	};

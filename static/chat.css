@@ -8,7 +8,7 @@ textarea {
 	resize: none;
 }
 
-#chat-personalinfo{
+.chat-personalinfo{
 	background-color: ede6de;
 	border-top: 2px solid #dbcdbd;
 	border-right: 2px solid #dbcdbd;
@@ -16,7 +16,11 @@ textarea {
 	padding: 2px;
 }
 
-#chat-rollup{
+.actions{
+	margin-bottom: 5px;
+}
+
+.chat-rollup{
 	border-bottom: 2px solid #f6f2ef;
 	border-right: 2px solid #dbcdbd;
 	border-left: 2px solid #dbcdbd;
@@ -25,35 +29,41 @@ textarea {
 	padding: 2px;
 }
 
-#chat-contacts{
+.rollup-text{
+	color: #846848;	
+}
+
+.chat-contacts{
 	background-color: ede6de;
 }
 
-#chat-topspace{
-	background: linear-gradient(#3399ff, #80bfff, #3399ff);
-	border-right: 2px solid #3399ff;
-	border-left: 2px solid #3399ff;
+.chat-topspace{
+	background: linear-gradient(#6dc2c5, #A8DADC, #6dc2c5);
+	border-right: 2px solid #41a1a4;
+	border-left: 2px solid #41a1a4;
 	padding: 2px;
+	border-bottom: 1px solid #41a1a4;
+	border-top: 1px solid #41a1a4;
 }
 
-#topdisplay{
-	color: #e6f2ff;
+.topdisplay{
+	color: #337d80;
 }
 
-#chat-messengerblock{
-	background-color: #b3d9ff;
-	border-right: 2px solid #3399ff;
-	border-left: 2px solid #3399ff;
+.chat-messengerblock{
+	background-color: #A8DADC;
+	border-right: 2px solid #41a1a4;
+	border-left: 2px solid #41a1a4;
 }
 
-#profileimage{
+.profileimage{
 	-webkit-box-shadow: 0px 0px 32px 1px rgba(0,0,0,0.3);
 	-moz-box-shadow: 0px 0px 32px 1px rgba(0,0,0,0.3);
 	box-shadow: 0px 0px 32px 1px rgba(0,0,0,0.3);
 	margin: 2px;
 }
 
-#infoblock {
+.infoblock {
 	border: 1px solid #d1bdad;
 	background-color: #f6f2ef;
 	border-radius: 15px;
@@ -106,11 +116,11 @@ textarea {
 	margin-top: 4px;
 }
 
-#messagefield {
-	background-color: white;
+.messagefield {
+	background-color: #edf7f8;
 	width: 100%;
-	height: 100%:
-	border: 1px solid black;
+	height: 100%;
+	border: 1px solid #41a1a4;
 	border-radius: 5px;
 	overflow-y: scroll;
 	-webkit-box-shadow: 0px 0px 32px 0px rgba(0,0,0,0.2);
@@ -118,36 +128,51 @@ textarea {
 	box-shadow: 0px 0px 32px 0px rgba(0,0,0,0.2);
 }
 
-#messageblock{
-	background-color: white;
+.messageblock{
+	background-color: #c8e8e9;
 	border-bottom: 1px dashed gray;
 	padding: 4px;
+	color: #1d4749;
 	
 }
 
-#messageblock-me{
-	background-color: #f2f2f2;
+.messageblock-me{
+	background-color: #b6e0e2;
 	border-bottom: 1px dashed gray;
 	padding: 4px;
+	color: #1d4749;
 	
 }
 
-#areablock{
+.messagefield-parent{
+	height: 59%;
+}
+
+
+.areablock{
 	width: 75%;
 }
 
-#areainput{
-	background-color: #e6f2ff;
+.areainput{
+	background-color:	#edf7f8;
 	-webkit-box-shadow: 0px 0px 32px 0px rgba(0,0,0,0.2);
 	-moz-box-shadow: 0px 0px 32px 0px rgba(0,0,0,0.2);
 	box-shadow: 0px 0px 32px 0px rgba(0,0,0,0.2);
+	resize: none; 
+	padding-bottom: 0;
 }
 
-#buttonblock{
+.buttonblock{
 	width: 25%
 }
 
-#inputfield{
+.button {
+	background: linear-gradient(#a8dadc, #92d1d3, #6dc2c5);
+	color: #24595b;
+	border: 1px solid #41a1a4;
+}
+
+.inputfield{
 	padding: 5px;
 }
 
@@ -166,9 +191,9 @@ textarea {
 	height: 5;
 	border-radius: 5px;
 	border: 1px solid #0066cc;
-	color: white;
+	color: #3a8d92;
 	text-align: center;
 	padding: 1px;
-	background: radial-gradient(#3399ff, #80bfff, #3399ff);
+	background: linear-gradient(#a8dadc, #92d1d3, #6dc2c5);
 	display: none;
 }
