@@ -12,7 +12,7 @@ Make sure you have these modules installed in your enviroment:
  - channels            2.1.2
  - channels-redis      2.2.1
 ## Installation
-This repository does not contain `settings.py` because of configuration privacy. You need to set it up by yourself to work with `Django`, `Django REST Framework` and `Django Channels`.
+This repository does not contain `settings.py` because of configuration privacy, but does contain example file `example_settings.py`. You need to set it up by to work with `Django`, `Django REST Framework` and `Django Channels`.
 `Pillow` is required to handle users' avatars.
 
 After cloning this repository, before first migration, plase change the content of `main.models.py`, from:
